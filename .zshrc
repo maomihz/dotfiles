@@ -78,6 +78,7 @@ plugins=(
     extract
     vi-mode
     sudo
+    dotenv
 )
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -164,6 +165,8 @@ for P in \
     "$HOME/.composer/vendor/bin" \
     "$HOME/.yarn/bin"      \
     "$HOME/.local/opt/jdk8u242-b08/bin" \
+    "$HOME/.local/opt/jdk-11.0.7/bin" \
+    "$HOME/.local/opt/jdk-14/bin" \
     "$HOME/.gem/ruby/"*/bin(N)
 do
     if [ -d "$P" ]; then
