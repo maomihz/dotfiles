@@ -251,6 +251,16 @@ alias userctl='systemctl --user'
 alias reload='sudo killall -SIGUSR1'
 alias dns='sudo killall -SIGHUP mDNSResponder'
 
+alias Syu='sudo pacman --needed -Syu'
+alias Sy='sudo pacman --needed -Sy'
+alias S='sudo pacman --needed -S'
+alias Ss='sudo pacman -Ss'
+alias Ql='sudo pacman -Ql'
+alias Qs='sudo pacman -Qs'
+alias Rs='sudo pacman -Rs'
+alias Rns='sudo pacman -Rns'
+alias y='yay'
+
 
 # Functions
 function rand() {
@@ -344,6 +354,13 @@ function update_oh_my_zsh() {
 }
 function update_dotfiles() {
     update_repo maomihz/dotfiles ~/.cfg
+}
+function update_pacman() {
+  [ -x "/usr/bin/pacman" ] && return 0
+
+  sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+  sudo chmod 755 /usr/local/bin/pacapt
+  sudo ln -sv /usr/local/bin/pacapt /usr/local/bin/pacman || true
 }
 
 
