@@ -82,6 +82,7 @@ plugins=(
 )
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    is_mac="true"
     plugins+=(
         tmux
         zsh-autosuggestions
@@ -248,17 +249,57 @@ alias ydl='youtube-dl -o "%(title)s.%(ext)s"'
 alias m='mpv'
 alias ctl='supervisorctl'
 alias userctl='systemctl --user'
+alias sctl='systemctl --user'
+alias uctl='systemctl --user'
 alias reload='sudo killall -SIGUSR1'
 alias dns='sudo killall -SIGHUP mDNSResponder'
 
-alias Syu='sudo pacman --needed -Syu'
-alias Sy='sudo pacman --needed -Sy'
-alias S='sudo pacman --needed -S'
-alias Ss='sudo pacman -Ss'
-alias Ql='sudo pacman -Ql'
-alias Qs='sudo pacman -Qs'
-alias Rs='sudo pacman -Rs'
-alias Rns='sudo pacman -Rns'
+if [ -n "$is_mac" ]; then
+  alias Sc='pacman -Sc'
+  alias Scc='pacman -Scc'
+  alias Sccc='pacman -Sccc'
+  alias Su='pacman -Su'
+  alias Sw='pacman -Sw'
+  alias S='pacman -S'
+  alias Sy='pacman -Sy'
+  alias Syu='pacman -Syu'
+  alias R='pacman -R'
+  alias Rn='pacman -Rn'
+  alias Rns='pacman -Rns'
+  alias Rs='pacman -Rs'
+else
+  alias Sc='sudo pacman -Sc'
+  alias Scc='sudo pacman -Scc'
+  alias Sccc='sudo pacman -Sccc'
+  alias Su='sudo pacman -Su'
+  alias Sw='sudo pacman -Sw'
+  alias S='sudo pacman -S'
+  alias Sy='sudo pacman -Sy'
+  alias Syu='sudo pacman -Syu'
+  alias R='sudo pacman -R'
+  alias Rn='sudo pacman -Rn'
+  alias Rns='sudo pacman -Rns'
+  alias Rs='sudo pacman -Rs'
+fi
+
+
+alias Sg='pacman -Sg'
+alias Si='pacman -Si'
+alias Sii='pacman -Sii'
+alias Sl='pacman -Sl'
+alias Ss='pacman -Ss'
+alias Q='pacman -Q'
+alias Qc='pacman -Qc'
+alias Qe='pacman -Qe'
+alias Qi='pacman -Qi'
+alias Qk='pacman -Qk'
+alias Ql='pacman -Ql'
+alias Qm='pacman -Qm'
+alias Qo='pacman -Qo'
+alias Qp='pacman -Qp'
+alias Qs='pacman -Qs'
+alias Qu='pacman -Qu'
+
 alias y='yay'
 
 
@@ -301,7 +342,13 @@ function path() {
 }
 
 function colors() {
-    for i in {0..255}; do printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i ; if ! (( ($i + 1 ) % 8 )); then echo ; fi ; done
+    for i in {0..255}
+    do
+        printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i
+        if ! (( ($i + 1 ) % 8 )); then
+            echo
+        fi
+    done
 }
 
 # update_repo <url> <path>
@@ -363,17 +410,11 @@ function update_pacman() {
   sudo ln -sv /usr/local/bin/pacapt /usr/local/bin/pacman || true
 }
 
-
 # heroku autocomplete setup
 # HEROKU_AC_ZSH_SETUP_PATH=/Users/cat/Library/Caches/heroku/autocomplete/zsh_setup
 # [ -f "$HEROKU_AC_ZSH_SETUP_PATH" ] && source "$HEROKU_AC_ZSH_SETUP_PATH"
-
-
-# added by travis gem
-[ -f /Users/cat/.travis/travis.sh ] && source /Users/cat/.travis/travis.sh
 
 if command -v "keychain" 1>/dev/null 2>&1
 then
     eval "$(keychain --eval -q)"
 fi
-
