@@ -1,0 +1,11 @@
+[Unit]
+Description=Home Assistent
+
+[Service]
+Type=simple
+ExecStart=%h/Documents/homeassistant/bin/hass
+WorkingDirectory=%h/Documents/homeassistant
+
+
+[Install]
+WantedBy=default.target

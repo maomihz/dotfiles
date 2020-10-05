@@ -1,0 +1,12 @@
+[Unit]
+Description=Homebridge
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/node bin/homebridge -U %h/.homebridge
+Environment=PREFIX=%h/Documents/homebridge
+WorkingDirectory=%h/Documents/homebridge
+
+
+[Install]
+WantedBy=default.target
