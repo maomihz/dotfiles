@@ -1,0 +1,11 @@
+[Unit]
+Description=Jupyter Notebook
+
+[Service]
+WorkingDirectory=%h
+ExecStart=%h/.pyenv/shims/jupyter-lab --no-browser --ip=127.0.0.1 --port=8888 --NotebookApp.token=''
+Type=simple
+
+
+[Install]
+WantedBy=default.target

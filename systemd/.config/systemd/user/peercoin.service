@@ -1,0 +1,11 @@
+[Unit]
+Description=Peercoin Daemon Service
+
+[Service]
+WorkingDirectory=%h
+ExecStart=%h/.local/bin/peercoind -debug -printtoconsole
+Type=simple
+
+
+[Install]
+WantedBy=default.target

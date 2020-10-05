@@ -1,0 +1,12 @@
+[Unit]
+Description=Waterfall
+
+[Service]
+WorkingDirectory=%h/Waterfall
+ExecStart=%h/Waterfall/start.sh
+Type=simple
+Environment=PATH=%h/.local/opt/jdk8u242-b08/bin:/usr/bin:/bin
+
+
+[Install]
+WantedBy=default.target

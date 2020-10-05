@@ -1,0 +1,14 @@
+[Unit]
+Description=Continuously visit websites
+
+[Service]
+WorkingDirectory=%h/Documents/visit
+ExecStart=/bin/bash -c "venv/bin/python -m scheduled_requests >>logs.txt"
+Restart=always
+RestartSec=60
+KillSignal=SIGINT
+Type=simple
+
+
+[Install]
+WantedBy=default.target

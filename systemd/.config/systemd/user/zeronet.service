@@ -1,0 +1,12 @@
+[Unit]
+Description=ZeroNet Daemon Service
+
+[Service]
+WorkingDirectory=%h/ZeroNet
+ExecStart=%h/ZeroNet/venv/bin/python2 zeronet.py
+KillSignal=SIGINT
+Type=simple
+
+
+[Install]
+WantedBy=default.target

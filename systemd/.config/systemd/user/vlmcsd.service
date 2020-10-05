@@ -1,0 +1,11 @@
+[Unit]
+Description=KMS Emulator in C
+
+[Service]
+ExecStart=%h/.local/bin/vlmcsd -e -L 0.0.0.0:1688
+KillSignal=SIGINT
+Type=forking
+
+
+[Install]
+WantedBy=default.target
