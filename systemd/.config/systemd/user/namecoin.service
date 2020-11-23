@@ -3,7 +3,7 @@ Description=Namecoin Daemon Service
 
 [Service]
 WorkingDirectory=%h
-ExecStart=%h/.local/bin/namecoind -debug -printtoconsole -datadir %h/Data/Namecoin
+ExecStart=%h/.local/bin/namecoind -debug -printtoconsole -datadir=%h/Data/Namecoin
 Type=simple
 
 
