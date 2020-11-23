@@ -3,7 +3,7 @@ Description=Peercoin Daemon Service
 
 [Service]
 WorkingDirectory=%h
-ExecStart=%h/.local/bin/peercoind -debug -printtoconsole
+ExecStart=%h/.local/bin/peercoind -debug -printtoconsole -datadir %h/Data/Peercoin
 Type=simple
 
 
