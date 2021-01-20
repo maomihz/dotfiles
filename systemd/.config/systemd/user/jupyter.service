@@ -3,7 +3,7 @@ Description=Jupyter Notebook
 
 [Service]
 WorkingDirectory=%h
-ExecStart=%h/.pyenv/shims/jupyter-lab --no-browser --ip=127.0.0.1 --port=8888 --NotebookApp.token=''
+ExecStart=%h/.pyenv/shims/jupyter-lab --no-browser --ip=127.0.0.1 --port=8888 --ServerApp.token=''
 Type=simple
 
 
