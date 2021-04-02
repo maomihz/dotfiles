@@ -79,17 +79,13 @@ plugins=(
     vi-mode
     sudo
     dotenv
+    pass
+    supervisor
 )
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     is_mac="true"
-    plugins+=(
-        tmux
-        osx
-        brew
-        supervisor
-        pass
-    )
+    plugins+=(osx)
 fi
 
 # ===== User configuration =====
@@ -121,7 +117,10 @@ if command -v "brew" 1>/dev/null 2>&1; then
     HOMEBREW_CELLAR=${HOMEBREW_CELLAR:-"/usr/local/Cellar"}
     HOMEBREW_REPOSITORY=${HOMEBREW_REPOSITORY:-"/usr/local/Homebrew"}
     CASKROOM="$HOMEBREW_PREFIX/Caskroom"
+    plugins+=(brew)
 fi
+
+type tmux > /dev/null && plugins+=(tmux)
 
 # ===== Configure additional PATH variable =====
 BREW_OPT_PATHS=(
@@ -151,6 +150,16 @@ OPT_PATHS=(
 GOOGLE_CLOUD_SDK_PATHS=(
     "$CASKROOM/google-cloud-sdk/latest/google-cloud-sdk"
     "$HOME/.local/opt/google-cloud-sdk"
+)
+
+# Used for update_gitignore function.
+# https://github.com/github/gitignore
+GITIGNORE_INCLUDE=(
+    Python
+    Java
+    Global/JetBrains
+    Global/macOS
+    Global/VisualStudioCode
 )
 
 # Additional zsh scripts before loading oh-my-zsh
@@ -344,11 +353,11 @@ function update_repo() {
     fi
 
     mkdir -p "${REPO_DEST}" || return
-    pushd "${REPO_DEST}"
+    pushd "${REPO_DEST}" > /dev/null
     git init
     git remote add origin "${REPO_URL}" || git remote set-url origin "${REPO_URL}"
     git pull origin master
-    popd
+    popd > /dev/null
 }
 
 function update_pyenv() {
@@ -372,12 +381,26 @@ function update_dotfiles() {
     update_repo maomihz/dotfiles ~/.cfg
 }
 function update_pacman() {
-  [ -x "/usr/bin/pacman" ] && return 0
+    [ -x "/usr/bin/pacman" ] && return 0
 
-  echo Install globally:
-  echo " " sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
-  echo Install locally
-  echo " " curl -Lo ~/.local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+    echo Install globally:
+    echo " " sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+    echo Install locally
+    echo " " curl -Lo ~/.local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+}
+
+function update_gitignore() {
+    update_repo github/gitignore.git ~/.cfg/gitignore
+    echo git config --global core.excludesFile '~/.gitignore'
+    git config --global core.excludesFile '~/.gitignore'
+
+    for GITIGNORE_FILE in $GITIGNORE_INCLUDE; do
+        if [[ ! -f "$GITIGNORE_FILE" ]]; then
+            GITIGNORE_FILE="$HOME/.cfg/gitignore/$GITIGNORE_FILE.gitignore"
+        fi
+        echo "# Source: $GITIGNORE_FILE"
+        cat "$GITIGNORE_FILE"
+    done > ~/.gitignore
 }
 
 # heroku autocomplete setup
