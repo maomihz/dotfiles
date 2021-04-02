@@ -79,9 +79,10 @@ plugins=(
     vi-mode
     sudo
     dotenv
-    pass
     supervisor
 )
+
+PLUGINS_CHECK=(brew tmux pass)
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
     is_mac="true"
@@ -112,15 +113,16 @@ for BREW in $BREW_PATHS; do
     fi
 done
 
-if command -v "brew" 1>/dev/null 2>&1; then
+if (( $+commands[brew] )); then
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"/usr/local"}
     HOMEBREW_CELLAR=${HOMEBREW_CELLAR:-"/usr/local/Cellar"}
     HOMEBREW_REPOSITORY=${HOMEBREW_REPOSITORY:-"/usr/local/Homebrew"}
     CASKROOM="$HOMEBREW_PREFIX/Caskroom"
-    plugins+=(brew)
 fi
 
-type tmux > /dev/null && plugins+=(tmux)
+for P in $PLUGINS_CHECK; do
+    (( $+commands[$P] )) && plugins+=("$C")
+done
 
 # ===== Configure additional PATH variable =====
 BREW_OPT_PATHS=(
@@ -185,7 +187,7 @@ for E in rb py nod j go pl; do
     ENV_CMD="${E}env"
     ENV_ROOT="$HOME/.${ENV_CMD}"
     [ -d "$ENV_ROOT/bin" ] && export PATH="$ENV_ROOT/bin:$PATH"
-    if command -v "$ENV_CMD" 1>/dev/null 2>&1; then
+    if (( $+commands[$ENV_CMD] )); then
         eval "$($ENV_CMD init - --no-rehash)"
     fi
 done
@@ -292,35 +294,35 @@ fi
 
 
 # Functions
-function randstr() {
+randstr() {
     CHAR="${1:-0-9a-z}"
     LEN="${2:-16}"
     COUNT="${3:-1}"
     for i in {1..$COUNT}; do
-        cat /dev/urandom | tr -dc "$CHAR" | head -c "$LEN" | xargs
+        tr -dc "$CHAR" < /dev/urandom | head -c "$LEN" | xargs
     done
 }
 
-function rs() randstr "0-9a-z" $@
-function rn() randstr "0-9" $@
-function rc() randstr "0-9a-zA-Z" $@
-function rC() randstr "a-zA-Z" $@
-function rl() randstr "a-z" $@
-function rL() randstr "A-Z" $@
-function rh() randstr "0-9a-f" $@
-function rH() randstr "0-9A-F" $@
-function rp() randstr '0-9A-Za-z!@#$%^&*()-+=' $@
+rs() randstr "0-9a-z" $@
+rn() randstr "0-9" $@
+rc() randstr "0-9a-zA-Z" $@
+rC() randstr "a-zA-Z" $@
+rl() randstr "a-z" $@
+rL() randstr "A-Z" $@
+rh() randstr "0-9a-f" $@
+rH() randstr "0-9A-F" $@
+rp() randstr '0-9A-Za-z!@#$%^&*()-+=' $@
 
 
-function synctime() {
-    date -s "$(curl -s --head http://google.com | grep ^Date: | sed 's/Date: //g')"
+synctime() {
+    date -s "$(curl -sI g.cn | sed -n '/^Date/s/Date: //gp')"
 }
 
-function path() {
+path() {
     echo $PATH | tr ':' '\n'
 }
 
-function colors() {
+colors() {
     for i in {0..255}
     do
         printf "\x1b[38;5;${i}mcolor%-5i\x1b[0m" $i
@@ -331,7 +333,7 @@ function colors() {
 }
 
 # update_repo <url> <path>
-function update_repo() {
+update_repo() {
     if [ -z "${1}" ]
     then
         echo "Usage: update_repo <url> <path>"
@@ -342,13 +344,12 @@ function update_repo() {
 
     if [[ ! "$REPO_URL" == https://* ]]
     then
-      REPO_URL="https://github.com/$REPO_URL"
+        REPO_URL="https://github.com/$REPO_URL"
     fi
 
     echo "${REPO_URL} --> ${REPO_DEST}"
 
-    if [ -z "${REPO_DEST}" ]
-    then
+    if [ -z "${REPO_DEST}" ]; then
         git clone ${REPO_URL}
     fi
 
@@ -360,38 +361,38 @@ function update_repo() {
     popd > /dev/null
 }
 
-function update_pyenv() {
+update_pyenv() {
     update_repo pyenv/pyenv ~/.pyenv
 }
-function update_rbenv() {
+update_rbenv() {
     update_repo rbenv/rbenv ~/.rbenv
     update_repo rbenv/ruby-build ~/.rbenv/plugins/ruby-build
 }
-function update_nodenv() {
+update_nodenv() {
     update_repo nodenv/nodenv ~/.nodenv
     update_repo nodenv/node-build ~/.nodenv/plugins/node-build
 }
-function update_vim_plug() {
+update_vim_plug() {
     update_repo junegunn/vim-plug ~/.vim/vim-plug
 }
-function update_oh_my_zsh() {
+update_oh_my_zsh() {
     update_repo ohmyzsh/oh-my-zsh ~/.oh-my-zsh
 }
-function update_dotfiles() {
+update_dotfiles() {
     update_repo maomihz/dotfiles ~/.cfg
 }
-function update_pacman() {
+update_pacman() {
     [ -x "/usr/bin/pacman" ] && return 0
 
-    echo Install globally:
-    echo " " sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
-    echo Install locally
-    echo " " curl -Lo ~/.local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+    echo "Install globally:"
+    echo "  sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt"
+    echo "Install locally:"
+    echo "  curl -Lo ~/.local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt"
 }
 
-function update_gitignore() {
+update_gitignore() {
     update_repo github/gitignore.git ~/.cfg/gitignore
-    echo git config --global core.excludesFile '~/.gitignore'
+    echo "git config --global core.excludesFile '~/.gitignore'"
     git config --global core.excludesFile '~/.gitignore'
 
     for GITIGNORE_FILE in $GITIGNORE_INCLUDE; do
@@ -407,6 +408,6 @@ function update_gitignore() {
 # HEROKU_AC_ZSH_SETUP_PATH=/Users/cat/Library/Caches/heroku/autocomplete/zsh_setup
 # [ -f "$HEROKU_AC_ZSH_SETUP_PATH" ] && source "$HEROKU_AC_ZSH_SETUP_PATH"
 
-if type "keychain" > /dev/null; then
-    eval "$(keychain --eval -q)"
+if (( $+commands[keychain] )); then
+    eval "$(keychain --eval -q --agents ssh,gpg)"
 fi
