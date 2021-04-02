@@ -85,7 +85,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     is_mac="true"
     plugins+=(
         tmux
-        zsh-autosuggestions
         osx
         brew
         supervisor
@@ -93,33 +92,77 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     )
 fi
 
-# User configuration
+# ===== User configuration =====
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 export EDITOR='vim'
 
 export VAGRANT_DEFAULT_PROVIDER=virtualbox
 export VAGRANT_BOX_UPDATE_CHECK_DISABLE=yes
-export ANSIBLE_INVENTORY=./hosts
+export ANSIBLE_INVENTORY=./hosts.yaml
 
-# Load homebrew path
-for BREW in \
-    "/home/linuxbrew/.linuxbrew/bin" \
-    "$HOME/.linuxbrew/bin"           \
+# ===== Loading Homebrew =====
+BREW_PATHS=(
+    "/home/linuxbrew/.linuxbrew/bin"
+    "$HOME/.linuxbrew/bin"
     "$HOME/.brew/bin"
-do
+)
+
+# Load non-standard homebrew path
+for BREW in $BREW_PATHS; do
     if [ -x "$BREW/brew" ]; then
         eval "$($BREW/brew shellenv)"
         break
     fi
 done
 
-
 if command -v "brew" 1>/dev/null 2>&1; then
     HOMEBREW_PREFIX=${HOMEBREW_PREFIX:-"/usr/local"}
     HOMEBREW_CELLAR=${HOMEBREW_CELLAR:-"/usr/local/Cellar"}
     HOMEBREW_REPOSITORY=${HOMEBREW_REPOSITORY:-"/usr/local/Homebrew"}
+    CASKROOM="$HOMEBREW_PREFIX/Caskroom"
 fi
+
+# ===== Configure additional PATH variable =====
+BREW_OPT_PATHS=(
+    "gnu-sed/libexec/gnubin"
+    "gnu-tar/libexec/gnubin"
+    "coreutils/libexec/gnubin"
+    "findutils/libexec/gnubin"
+    "gnu-getopt/bin"
+    "gettext/bin"
+    "openssl@1.1/bin"
+    "node@10/bin"
+)
+
+OPT_PATHS=(
+    "/Applications/Sublime Text.app/Contents/SharedSupport/bin"
+    "$HOME/Applications/Sublime Text.app/Contents/SharedSupport/bin"
+    "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+    "$HOME/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+    "$HOME/.local/bin"
+    "$HOME/.composer/vendor/bin"
+    "$HOME/.yarn/bin"
+    "$HOME/.local/opt/jdk8u242-b08/bin"
+    "$HOME/.local/opt/jdk-11.0.7/bin"
+    "$HOME/.local/opt/jdk-14/bin"
+)
+
+GOOGLE_CLOUD_SDK_PATHS=(
+    "$CASKROOM/google-cloud-sdk/latest/google-cloud-sdk"
+    "$HOME/.local/opt/google-cloud-sdk"
+)
+
+# Additional zsh scripts before loading oh-my-zsh
+FPATH_PATHS=(
+    "$HOMEBREW_PREFIX/share/zsh/site-functions"
+)
+
+for P in $FPATH_PATHS; do
+    if [ -d "$P" ]; then
+        FPATH="$P:$FPATH"
+    fi
+done
 
 # Load oh-my-zsh after brew path
 if [ -n "$ZSH" ]; then
@@ -128,10 +171,8 @@ if [ -n "$ZSH" ]; then
   [[ -d "$ZSH_CACHE_DIR" ]] || mkdir -p "$ZSH_CACHE_DIR"
 fi
 
-
 # Language envs
-for E in rb py nod j go pl
-do
+for E in rb py nod j go pl; do
     ENV_CMD="${E}env"
     ENV_ROOT="$HOME/.${ENV_CMD}"
     [ -d "$ENV_ROOT/bin" ] && export PATH="$ENV_ROOT/bin:$PATH"
@@ -141,17 +182,8 @@ do
 done
 
 
-# Additional brew PATH
-for P in \
-    "gnu-sed/libexec/gnubin"    \
-    "gnu-tar/libexec/gnubin"    \
-    "coreutils/libexec/gnubin"  \
-    "findutils/libexec/gnubin"  \
-    "gnu-getopt/bin"            \
-    "gettext/bin"               \
-    "openssl@1.1/bin"           \
-    "node@10/bin"
-do
+# Additional brew opt PATH
+for P in $BREW_OPT_PATHS; do
     if [ -d "$HOMEBREW_PREFIX/opt/$P" ]; then
         export PATH="$HOMEBREW_PREFIX/opt/$P:$PATH"
     fi
@@ -159,24 +191,14 @@ done
 
 
 # Optional
-for P in \
-    "/Applications/Sublime Text.app/Contents/SharedSupport/bin"    \
-    "/opt/namecoin/bin"    \
-    "$HOME/.local/bin"     \
-    "$HOME/.composer/vendor/bin" \
-    "$HOME/.yarn/bin"      \
-    "$HOME/.local/opt/jdk8u242-b08/bin" \
-    "$HOME/.local/opt/jdk-11.0.7/bin" \
-    "$HOME/.local/opt/jdk-14/bin" \
-    "$HOME/.gem/ruby/"*/bin(N)
-do
+for P in $OPT_PATHS; do
     if [ -d "$P" ]; then
         export PATH="$P:$PATH"
     fi
 done
 
 
-#THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
+# THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
 export SDKMAN_DIR="$HOME/.sdkman"
 [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
 
@@ -185,36 +207,17 @@ TRAVIS_DIR="$HOME/.travis"
 [ -f "$TRAVIS_DIR/travis.sh" ] && source "$TRAVIS_DIR/travis.sh"
 
 # Google cloud auto completion
-for GOOGLE_CLOUD_SDK in \
-    "$HOMEBREW_PREFIX/Caskroom/google-cloud-sdk/latest/google-cloud-sdk" \
-    "$HOME/.local/opt/google-cloud-sdk"
-do
+for GOOGLE_CLOUD_SDK in $GOOGLE_CLOUD_SDK_PATHS; do
     if [ -d "$GOOGLE_CLOUD_SDK" ]; then
         source "$GOOGLE_CLOUD_SDK/path.zsh.inc"
         source "$GOOGLE_CLOUD_SDK/completion.zsh.inc"
     fi
 done
 
-
-if command -v "aws" 1>/dev/null 2>&1
-then
-    source "$(pyenv which aws_zsh_completer.sh)"
-fi
-
-if command -v "az" 1>/dev/null 2>&1
-then
-    source "$(pyenv which az.completion.sh)" >/dev/null 2>&1
-fi
-
-if command -v "kubectl" 1>/dev/null 2>&1
-then
-    eval "$(kubectl completion zsh)"
-fi
-
-if command -v "helm" 1>/dev/null 2>&1
-then
-    eval "$(helm completion zsh)"
-fi
+# if command -v "aws" 1>/dev/null 2>&1
+# then
+#     source "$(pyenv which aws_zsh_completer.sh)"
+# fi
 
 PERL5_DIR="$HOME/perl5"
 if [ -d "$PERL5_DIR" ]
@@ -229,23 +232,14 @@ fi
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-# Alias
+# ===== Alias and custom functions =====
 alias ls='ls --color=auto'
 alias wgetr='wget -r -np -R "index.html*"'
 alias ydla='youtube-dl -o "%(title)s.%(ext)s" -f mp4 --extract-audio --write-thumbnail --write-description'
 alias ydl4='youtube-dl -o "%(title)s.%(ext)s" -f mp4'
 alias ydl='youtube-dl -o "%(title)s.%(ext)s"'
+alias ydlbest='youtube-dl -o "%(title)s.%(ext)s" -f "bestvideo+bestaudio[ext=m4a]/bestvideo+bestaudio/best" --merge-output-format mp4'
+alias ydlbest4='youtube-dl -o "%(title)s.%(ext)s" -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best" --merge-output-format mp4'
 alias m='mpv'
 alias ctl='supervisorctl'
 alias userctl='systemctl --user'
@@ -253,84 +247,60 @@ alias sctl='systemctl --user'
 alias uctl='systemctl --user'
 alias reload='sudo killall -SIGUSR1'
 alias dns='sudo killall -SIGHUP mDNSResponder'
+alias y='yay'
 
-if [ -n "$is_mac" ]; then
-  alias Sc='pacman -Sc'
-  alias Scc='pacman -Scc'
-  alias Sccc='pacman -Sccc'
-  alias Su='pacman -Su'
-  alias Sw='pacman -Sw'
-  alias S='pacman -S'
-  alias Sy='pacman -Sy'
-  alias Syu='pacman -Syu'
-  alias R='pacman -R'
-  alias Rn='pacman -Rn'
-  alias Rns='pacman -Rns'
-  alias Rs='pacman -Rs'
-else
-  alias Sc='sudo pacman -Sc'
-  alias Scc='sudo pacman -Scc'
-  alias Sccc='sudo pacman -Sccc'
-  alias Su='sudo pacman -Su'
-  alias Sw='sudo pacman -Sw'
-  alias S='sudo pacman -S'
-  alias Sy='sudo pacman -Sy'
-  alias Syu='sudo pacman -Syu'
-  alias R='sudo pacman -R'
-  alias Rn='sudo pacman -Rn'
-  alias Rns='sudo pacman -Rns'
-  alias Rs='sudo pacman -Rs'
+PACMAN_PRIVILEGED_OPERATIONS=(
+    Sc Scc Sccc Su Sw S Sy Syu
+    R Rn Rns Rs
+)
+
+PACMAN_OPERATIONS=(
+    Sg Si Sii Sl Ss
+    Q Qc Qe Qi Qk Ql Qm Qo Qp Qs Qu
+)
+
+for PACMAN in pacman pacapt; do
+    if type "$PACMAN" > /dev/null; then
+        PACMAN_CMD="$PACMAN"
+
+        # Check if pacman is owned by the user
+        if [[ ! -O $(which $PACMAN_CMD) ]]; then
+            PACMAN_PRIVILEGED_CMD="sudo $PACMAN"
+        else
+            PACMAN_PRIVILEGED_CMD="$PACMAN"
+        fi
+    fi
+done
+
+if [ -n "$PACMAN_CMD" ]; then
+    for P in $PACMAN_PRIVILEGED_OPERATIONS; do
+        alias "$P"="$PACMAN_PRIVILEGED_CMD -$P"
+    done
+    for P in $PACMAN_OPERATIONS; do
+        alias "$P"="$PACMAN_CMD -$P"
+    done
 fi
 
 
-alias Sg='pacman -Sg'
-alias Si='pacman -Si'
-alias Sii='pacman -Sii'
-alias Sl='pacman -Sl'
-alias Ss='pacman -Ss'
-alias Q='pacman -Q'
-alias Qc='pacman -Qc'
-alias Qe='pacman -Qe'
-alias Qi='pacman -Qi'
-alias Qk='pacman -Qk'
-alias Ql='pacman -Ql'
-alias Qm='pacman -Qm'
-alias Qo='pacman -Qo'
-alias Qp='pacman -Qp'
-alias Qs='pacman -Qs'
-alias Qu='pacman -Qu'
-
-alias y='yay'
-
-
 # Functions
-function rand() {
+function randstr() {
     CHAR="${1:-0-9a-z}"
-    LEN="${2:-15}"
-    cat /dev/urandom | base64 | tr -dc "$CHAR" | head -c "$LEN" | xargs
+    LEN="${2:-16}"
+    COUNT="${3:-1}"
+    for i in {1..$COUNT}; do
+        cat /dev/urandom | tr -dc "$CHAR" | head -c "$LEN" | xargs
+    done
 }
 
-function rands() {
-    CHAR="${1:-0-9a-z}"
-    LEN="${2:-15}"
-    cat /dev/urandom | tr -dc "$CHAR" | head -c "$LEN" | xargs
-}
-
-function rn() {
-    rand "0-9" $*
-}
-
-function rc() {
-    rand "0-9a-zA-Z" $*
-}
-
-function rl() {
-    rand "a-z" $*
-}
-
-function rp() {
-    rands '0-9A-Za-z!@#$%^&*()-+=' $*
-}
+function rs() randstr "0-9a-z" $@
+function rn() randstr "0-9" $@
+function rc() randstr "0-9a-zA-Z" $@
+function rC() randstr "a-zA-Z" $@
+function rl() randstr "a-z" $@
+function rL() randstr "A-Z" $@
+function rh() randstr "0-9a-f" $@
+function rH() randstr "0-9A-F" $@
+function rp() randstr '0-9A-Za-z!@#$%^&*()-+=' $@
 
 
 function synctime() {
@@ -385,19 +355,18 @@ function update_pyenv() {
     update_repo pyenv/pyenv ~/.pyenv
 }
 function update_rbenv() {
-    update_repo https://github.com/rbenv/rbenv ~/.rbenv
-    update_repo https://github.com/rbenv/ruby-build ~/.rbenv/plugins/ruby-build
+    update_repo rbenv/rbenv ~/.rbenv
+    update_repo rbenv/ruby-build ~/.rbenv/plugins/ruby-build
 }
 function update_nodenv() {
-    update_repo https://github.com/nodenv/nodenv ~/.nodenv
-    update_repo https://github.com/nodenv/node-build ~/.nodenv/plugins/node-build
+    update_repo nodenv/nodenv ~/.nodenv
+    update_repo nodenv/node-build ~/.nodenv/plugins/node-build
 }
 function update_vim_plug() {
-    update_repo https://github.com/junegunn/vim-plug ~/.vim/vim-plug
+    update_repo junegunn/vim-plug ~/.vim/vim-plug
 }
-
 function update_oh_my_zsh() {
-    update_repo https://github.com/ohmyzsh/oh-my-zsh ~/.oh-my-zsh
+    update_repo ohmyzsh/oh-my-zsh ~/.oh-my-zsh
 }
 function update_dotfiles() {
     update_repo maomihz/dotfiles ~/.cfg
@@ -405,16 +374,16 @@ function update_dotfiles() {
 function update_pacman() {
   [ -x "/usr/bin/pacman" ] && return 0
 
-  sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
-  sudo chmod 755 /usr/local/bin/pacapt
-  sudo ln -sv /usr/local/bin/pacapt /usr/local/bin/pacman || true
+  echo Install globally:
+  echo " " sudo curl -Lo /usr/local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
+  echo Install locally
+  echo " " curl -Lo ~/.local/bin/pacapt https://github.com/icy/pacapt/raw/ng/pacapt
 }
 
 # heroku autocomplete setup
 # HEROKU_AC_ZSH_SETUP_PATH=/Users/cat/Library/Caches/heroku/autocomplete/zsh_setup
 # [ -f "$HEROKU_AC_ZSH_SETUP_PATH" ] && source "$HEROKU_AC_ZSH_SETUP_PATH"
 
-if command -v "keychain" 1>/dev/null 2>&1
-then
+if type "keychain" > /dev/null; then
     eval "$(keychain --eval -q)"
 fi
