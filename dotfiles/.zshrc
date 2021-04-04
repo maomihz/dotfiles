@@ -252,10 +252,15 @@ alias ydl='youtube-dl -o "%(title)s.%(ext)s"'
 alias ydlbest='youtube-dl -o "%(title)s.%(ext)s" -f "bestvideo+bestaudio[ext=m4a]/bestvideo+bestaudio/best" --merge-output-format mp4'
 alias ydlbest4='youtube-dl -o "%(title)s.%(ext)s" -f "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best" --merge-output-format mp4'
 alias m='mpv'
-alias ctl='supervisorctl'
-alias userctl='systemctl --user'
-alias sctl='systemctl --user'
-alias uctl='systemctl --user'
+if (($+commands[supervisorctl])); then
+    alias ctl='supervisorctl'
+else
+    alias ctl='systemctl'
+fi
+alias jtl='journalctl -u'
+alias jtlu='journalctl --user -u'
+alias utl='systemctl --user'
+alias ctlu='systemctl --user'
 alias reload='sudo killall -SIGUSR1'
 alias dns='sudo killall -SIGHUP mDNSResponder'
 alias y='yay'
@@ -304,6 +309,7 @@ randstr() {
 }
 
 rs() randstr "0-9a-z" $@
+rS() randstr "0-9A-Z" $@
 rn() randstr "0-9" $@
 rc() randstr "0-9a-zA-Z" $@
 rC() randstr "a-zA-Z" $@
